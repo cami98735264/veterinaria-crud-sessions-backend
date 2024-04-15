@@ -90,7 +90,7 @@ const checkIfEmailExists = async (req, res, next) => {
         req.usuarioEncontrado = usuarioEncontrado
     }
     next();
-}
+};
 
 const isAuthenticated = (req, res, next) => {
     console.log(req.cookies)
@@ -107,9 +107,10 @@ const isAuthenticated = (req, res, next) => {
         }
         req.headers.authorization = "Bearer " + reqToken;
         req.dataUsuario = decripted;
+        console.log(decripted)
         next();
     })
-}
+};
 
 app.get("/api/auth/check", isAuthenticated, (req, res) => {
     res.status(200).json({
@@ -161,7 +162,7 @@ app.post("/api/auth/register", checkIfEmailExists, async (req, res) => {
             correo: usuarioCreado.correo,
             telefono: usuarioCreado.telefono,
             direccion: usuarioCreado.direccion
-        }
+        };
         console.log("Usuario creado!!!")
         const token = jwt.sign(payload, secretJWT, { expiresIn: '12h'});
         console.log("El token es: ", token)
@@ -210,7 +211,7 @@ app.post("/api/auth/login", checkIfEmailExists, async (req, res) => {
             });
             return;
         }
-        const payload = { id: usuarioEncontrado.id, email: usuarioEncontrado.email, telefono: usuarioEncontrado.telefono, direccion: usuarioEncontrado.direccion };
+        const payload = { id: usuarioEncontrado.id, correo: usuarioEncontrado.correo, telefono: usuarioEncontrado.telefono, direccion: usuarioEncontrado.direccion };
         const token = jwt.sign(payload, secretJWT, {
             expiresIn: '12h'
         });
