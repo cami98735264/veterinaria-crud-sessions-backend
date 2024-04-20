@@ -64,13 +64,14 @@ Consultas.belongsTo(TipoConsultas, {
 app.use(cors(
     {
         // set origin to a specific origin.
-        origin: 'http://localhost:3001',
+        origin: ['https://cami98735264.github.io', 'http://localhost:3000'],
+
         
         // or, set origin to true to reflect the request origin
         //origin: true,
       
         credentials: true,
-        optionsSuccessStatus: 200,
+        optionsSuccessStatus: 200 // Giving strict-origin-when-cross-origin error, how to fix? r/ 
       }));
 app.use(cookieParser()); // Establecer el middleware de cookieParser() para obtener los métodos de administración de cookies en el parametro res de cada petición
 app.use(express.json()); // Capacidad para express de poder parsear (leer) el body de cada petición
@@ -225,6 +226,8 @@ app.post("/api/auth/register", checkIfEmailExists, async (req, res) => {
 
         // Crear la cookie conteniendo nuestro token de autorización para uso posterior en acciones autenticadas
         res.cookie("authorization", token, {
+            sameSite: "none",
+            secure: true,
             httpOnly: true,
             maxAge: 60 * 60 * 12000
         });
@@ -296,7 +299,9 @@ app.post("/api/auth/login", checkIfEmailExists, async (req, res) => {
 
         // Establecer la cookie "authorization" al token inmediatamente firmado
         res.cookie("authorization", token, {
+            sameSite: "none",
             httpOnly: true,
+            secure: true,
             maxAge: 60 * 60 * 12000
         });
 
