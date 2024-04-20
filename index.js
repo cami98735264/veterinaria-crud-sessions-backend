@@ -3,6 +3,8 @@ const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 const { DataTypes } = require("sequelize");
 dotenv.config();
+// Get ipv4 address
+console.log(ipv4)
 const { Sequelize } = require('sequelize');
 const express = require("express");
 const secretJWT = process.env["JWT_SECRET"];
@@ -64,7 +66,7 @@ Consultas.belongsTo(TipoConsultas, {
 app.use(cors(
     {
         // set origin to a specific origin.
-        origin: ['https://cami98735264.github.io', 'http://localhost:3000'],
+        origin: ['https://cami98735264.github.io', `http://localhost:3000`],
 
         
         // or, set origin to true to reflect the request origin
