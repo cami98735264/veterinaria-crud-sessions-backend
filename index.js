@@ -161,7 +161,12 @@ app.post("/api/auth/logout", (req, res) => {
     try {
 
         // Eliminar nuestra cookie de autenticación, que, por consecuente cerraría la sesión dinámica de nuestro usuario
-        res.clearCookie("authorization");
+        res.clearCookie("authorization", {
+            sameSite: "none",
+            secure: true,
+            httpOnly: true
+
+        });
         res.status(200).json({message: "El usuario se ha deslogeado de manera correcta", success: true });
     } catch(err) {
         res.status(500).json({
