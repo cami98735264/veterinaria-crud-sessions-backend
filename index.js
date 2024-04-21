@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const { DataTypes } = require("sequelize");
 dotenv.config();
 // Get ipv4 address
-console.log(ipv4)
 const { Sequelize } = require('sequelize');
 const express = require("express");
 const secretJWT = process.env["JWT_SECRET"];
