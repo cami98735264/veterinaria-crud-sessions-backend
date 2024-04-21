@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 const { DataTypes } = require("sequelize");
 dotenv.config();
-// Get ipv4 address
+
 const { Sequelize } = require('sequelize');
 const express = require("express");
 const secretJWT = process.env["JWT_SECRET"];
@@ -65,14 +65,14 @@ Consultas.belongsTo(TipoConsultas, {
 app.use(cors(
     {
         // set origin to a specific origin.
-        origin: ['https://cami98735264.github.io', `http://localhost:3000`],
+        origin: ['https://cami98735264.github.io', 'http://localhost:3001'],
 
         
         // or, set origin to true to reflect the request origin
         //origin: true,
       
         credentials: true,
-        optionsSuccessStatus: 200 // Giving strict-origin-when-cross-origin error, how to fix? r/ 
+        optionsSuccessStatus: 200 
       }));
 app.use(cookieParser()); // Establecer el middleware de cookieParser() para obtener los métodos de administración de cookies en el parametro res de cada petición
 app.use(express.json()); // Capacidad para express de poder parsear (leer) el body de cada petición
@@ -163,10 +163,10 @@ app.post("/api/auth/logout", (req, res) => {
 
         // Eliminar nuestra cookie de autenticación, que, por consecuente cerraría la sesión dinámica de nuestro usuario
         res.clearCookie("authorization", {
+            // Any way to make this work in non-secure sites? (localhost) R/ Yes, you can set the sameSite attribute to "none" and secure to true. That doesnt work when origin is not secure. (http://192.168.1.7:3000/api/auth/) R/ You can't set the sameSite attribute to none if the origin is not secure. You can set it to "lax" or "strict" instead. (https://stackoverflow.com/questions/62611823/express-session-cookie-not-being-set-in-browser) / Then what do you recommend me to set in case I want every
             sameSite: "none",
             secure: true,
             httpOnly: true
-
         });
         res.status(200).json({message: "El usuario se ha deslogeado de manera correcta", success: true });
     } catch(err) {
@@ -328,5 +328,6 @@ app.post("/api/auth/login", checkIfEmailExists, async (req, res) => {
     }
 })
 app.listen(3000, () => {
+    // log what ip the server is running in
     console.log("App listening at port", 3000)
 })
