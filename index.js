@@ -65,6 +65,8 @@ Consultas.belongsTo(TipoConsultas, {
 app.use(cors(
     {
         // set origin to a specific origin.
+        // 192.168.1.7
+        // 127.0.0.1 
         origin: ['https://cami98735264.github.io', 'http://localhost:3001'],
 
         
@@ -77,7 +79,6 @@ app.use(cors(
 app.use(cookieParser()); // Establecer el middleware de cookieParser() para obtener los métodos de administración de cookies en el parametro res de cada petición
 app.use(express.json()); // Capacidad para express de poder parsear (leer) el body de cada petición
 app.use(express.urlencoded({ extended: false }));
-
 
 
 // Middleware que se encargará de revisar si el email proporcionado en la request existe y responderá acorde a ello
@@ -121,6 +122,7 @@ const isAuthenticated = (req, res, next) => {
     const reqToken = req.cookies.authorization || req.headers.authorization;
     console.log(reqToken);
 
+
     // Si no hay token presente se asume que el usuario no está autenticado y por lo tanto no tiene autorización para utilizar la request destinada
     if(!reqToken) {
         res.status(401).json({message: "No autorizado, credenciales no encontrados", success: false })
@@ -152,7 +154,7 @@ app.get("/api/auth/check", isAuthenticated, (req, res) => {
         success: true,
         userData: req.dataUsuario
     })
-})
+});
 
 
 
@@ -326,8 +328,158 @@ app.post("/api/auth/login", checkIfEmailExists, async (req, res) => {
             success: false
         });
     }
-})
+});
+
+
+
+app.post("/api/consultas/create", isAuthenticated, async (req, res) => {
+    const targetUser = req.dataUsuario;
+    const id_usuario = targetUser.id;
+    const { id_tipoconsulta, id_tipoanimal, fecha } = req.body;
+    if(!id_tipoconsulta || !id_tipoanimal) {
+        res.status(422).json({
+            message: "Se deben proporcionar todos los campos necesarios para crear una consulta",
+            success: false
+        });
+        return;
+    }
+    try {
+        const consultaCreada = await Consultas.create({
+            id_tipoconsulta: id_tipoconsulta,
+            tipo_animal: id_tipoanimal,
+            id_usuario: id_usuario,
+            fecha_entrada: fecha || new Date(),
+            estado: true
+        });
+        res.status(200).json({
+            message: "Consulta creada correctamente",
+            success: true,
+            data: consultaCreada
+        });
+    } catch(err) {
+        console.log(err);
+        res.status(500).json({
+            message: "Error interno del servidor, no se ha podido crear la consulta",
+            success: false
+        });
+    }
+});
+
+app.post("/api/consultas/delete", isAuthenticated, async (req, res) => {
+    const targetUser = req.dataUsuario;
+    const id_usuario = targetUser.isAdmin ? req.body.id_usuario : targetUser.id;
+    const { id_consulta } = req.body;
+    if(!id_consulta || !id_usuario) {
+        res.status(422).json({
+            message: "Se debe proporcionar el id de la consulta o el usuario a eliminar",
+            success: false
+        });
+        return;
+    }
+    try {
+        let toUpdate = {
+            estado: false
+        };
+        if(req.body.fecha_salida && targetUser.isAdmin) {
+            toUpdate.fecha_salida = req.body.fecha_salida;
+        }
+        // Instead of deleting the record, we will update the record to set the state to false
+        const consultaEliminada = await Consultas.update(toUpdate, {
+            where: {
+                id_consulta: id_consulta,
+                id_usuario: id_usuario
+            }
+        });
+        if(consultaEliminada[0] === 0) {
+            res.status(404).json({
+                message: "No se ha encontrado la consulta a eliminar, o ya ha sido eliminada anteriormente. No se actualizó ninguna información",
+                success: false
+            });
+            return;
+        }
+        res.status(200).json({
+            message: "Consulta eliminada correctamente",
+            success: true,
+            data: consultaEliminada
+        });
+    } catch(err) {
+        console.log(err);
+        res.status(500).json({
+            message: "Error interno del servidor, no se ha podido eliminar la consulta",
+            success: false
+        });
+    }
+});
+
+
+app.get("/api/consultas/get", isAuthenticated, async (req, res) => {
+    const targetUser = req.dataUsuario;
+    const id_usuario = targetUser.id;
+    try {
+        const consultas = await Consultas.findAll({
+            where: {
+                id_usuario: id_usuario,
+                estado: true
+            },
+            include: [
+                {
+                    model: Animales,
+                    required: true
+                },
+                {
+                    model: TipoConsultas,
+                    required: true
+                }
+            ]
+        });
+        res.status(200).json({
+            message: "Consultas obtenidas correctamente",
+            success: true,
+            data: consultas
+        });
+    } catch(err) {
+        console.log(err);
+        res.status(500).json({
+            message: "Error interno del servidor, no se han podido obtener las consultas",
+            success: false
+        });
+    }
+});  
+
+app.get("/api/animales/get", isAuthenticated, async (req, res) => {
+    try {
+        const animales = await Animales.findAll();
+        res.status(200).json({
+            message: "Animales obtenidos correctamente",
+            success: true,
+            data: animales
+        });
+    } catch(err) {
+        console.log(err);
+        res.status(500).json({
+            message: "Error interno del servidor, no se han podido obtener los animales",
+            success: false
+        });
+    }
+});
+
+app.get("/api/tipoconsultas/get", isAuthenticated, async (req, res) => {
+    try {
+        const tipoconsultas = await TipoConsultas.findAll();
+        res.status(200).json({
+            message: "Tipo de consultas obtenidas correctamente",
+            success: true,
+            data: tipoconsultas
+        });
+    } catch(err) {
+        console.log(err);
+        res.status(500).json({
+            message: "Error interno del servidor, no se han podido obtener los tipos de consultas",
+            success: false
+        });
+    }
+});
+
 app.listen(3000, () => {
-    // log what ip the server is running in
     console.log("App listening at port", 3000)
 })
