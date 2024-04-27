@@ -58,8 +58,7 @@ Consultas.belongsTo(TipoConsultas, {
       } catch (error) {
         console.error('Unable to connect to the database:', error);
       }
-})()
-
+})();
 
 // App middlewares (Establecer el origen de las peticiones para lo cual guardar cookies e información)
 app.use(cors(
@@ -67,9 +66,9 @@ app.use(cors(
         // set origin to a specific origin.
         // 192.168.1.7
         // 127.0.0.1 
-        origin: ['https://cami98735264.github.io', 'http://localhost:3001'],
+        origin: ['https://cami98735264.github.io', 'http://localhost:3001', 'http://192.168.1.7:4000'],
 
-        
+        methods: ["POST", "GET"],
         // or, set origin to true to reflect the request origin
         //origin: true,
       
@@ -166,8 +165,8 @@ app.post("/api/auth/logout", (req, res) => {
         // Eliminar nuestra cookie de autenticación, que, por consecuente cerraría la sesión dinámica de nuestro usuario
         res.clearCookie("authorization", {
             // Any way to make this work in non-secure sites? (localhost) R/ Yes, you can set the sameSite attribute to "none" and secure to true. That doesnt work when origin is not secure. (http://192.168.1.7:3000/api/auth/) R/ You can't set the sameSite attribute to none if the origin is not secure. You can set it to "lax" or "strict" instead. (https://stackoverflow.com/questions/62611823/express-session-cookie-not-being-set-in-browser) / Then what do you recommend me to set in case I want every
-            sameSite: "none",
-            secure: true,
+            sameSite: "strict",
+            secure: false,
             httpOnly: true
         });
         res.status(200).json({message: "El usuario se ha deslogeado de manera correcta", success: true });
@@ -233,9 +232,10 @@ app.post("/api/auth/register", checkIfEmailExists, async (req, res) => {
 
 
         // Crear la cookie conteniendo nuestro token de autorización para uso posterior en acciones autenticadas
+        // Can I use sameSite Strict and secure falswe
         res.cookie("authorization", token, {
-            sameSite: "none",
-            secure: true,
+            sameSite: "strict",
+            secure: false,
             httpOnly: true,
             maxAge: 60 * 60 * 12000
         });
@@ -307,9 +307,9 @@ app.post("/api/auth/login", checkIfEmailExists, async (req, res) => {
 
         // Establecer la cookie "authorization" al token inmediatamente firmado
         res.cookie("authorization", token, {
-            sameSite: "none",
+            sameSite: "strict",
             httpOnly: true,
-            secure: true,
+            secure: false,
             maxAge: 60 * 60 * 12000
         });
 
@@ -480,6 +480,6 @@ app.get("/api/tipoconsultas/get", isAuthenticated, async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log("App listening at port", 3000)
+app.listen(4000, () => {
+    console.log("App listening at port", 4000)
 })
